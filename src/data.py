@@ -1,7 +1,7 @@
 import pandas as pd
 import yfinance as yf
 
-def load_df(
+def load_yf(
     ticker: str,
     period: str | None = '1y',
     start: str | None = None,
