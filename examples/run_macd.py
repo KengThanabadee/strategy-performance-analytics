@@ -23,7 +23,7 @@ def main():
     df = macd_strategy(df)
 
     # 3) Backtest -> equity/returns
-    bt = backtest_positions(df)
+    bt, _ = backtest_positions(df)
 
     # 4) Reports
     perf = performance_report(bt)
