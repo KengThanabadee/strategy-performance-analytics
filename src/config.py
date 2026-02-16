@@ -1,11 +1,11 @@
-"""Centralized configuration values for the project.
+'''Centralized configuration values for the project.
 
-These constants replace scattered "magic numbers" and make tuning easier.
-"""
+These constants replace scattered 'magic numbers' and make tuning easier.
+'''
 
 from pathlib import Path
 
-DATA_DIR: Path = Path("data/raw")
+DATA_DIR: Path = Path('data/raw')
 DEFAULT_RF_RATE: float = 0.0
 PERIODS_PER_YEAR: int = 252
 CRYPTO_PERIODS_PER_YEAR: int = 365

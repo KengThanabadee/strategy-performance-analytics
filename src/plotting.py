@@ -101,7 +101,7 @@ def rsi_bands_spec(panel=1, lo=30, mid=50, hi=70, color='gray', linestyle='--'):
     }
 
 def build_indicator_addplots(bt, specs):
-    """
+    '''
     Build mplfinance addplots for indicators.
     
     bt : pd.DataFrame
@@ -114,7 +114,7 @@ def build_indicator_addplots(bt, specs):
      - hline: {'type':'hline','panel':1,'y':[30,50,70],'color':...,'linestyle':'--'}
 
     Returns: list of mpf addplot objects
-    """
+    '''
     aps = []
 
     for s in specs:

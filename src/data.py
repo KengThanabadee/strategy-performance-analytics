@@ -6,13 +6,20 @@ import warnings
 import pandas as pd
 import yfinance as yf
 
-from .config import DATA_DIR
+try:
+    from .config import DATA_DIR
+except ImportError:  # pragma: no cover - supports script-style imports from examples/
+    from config import DATA_DIR
+
+_YF_TZ_CACHE_DIR = DATA_DIR / '_yfinance_tz_cache'
+_YF_TZ_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+yf.set_tz_cache_location(str(_YF_TZ_CACHE_DIR))
 
 
 def _safe_token(value: str | None) -> str:
-    if value is None or value == "":
-        return "none"
-    return "".join(ch if ch.isalnum() or ch in ("-", "_", ".") else "_" for ch in value)
+    if value is None or value == '':
+        return 'none'
+    return ''.join(ch if ch.isalnum() or ch in ('-', '_', '.') else '_' for ch in value)
 
 
 def _cache_path(
@@ -25,18 +32,18 @@ def _cache_path(
     multi_level_index: bool,
     cache_dir: Path,
 ) -> Path:
-    token = "_".join(
+    token = '_'.join(
         [
             _safe_token(ticker),
             _safe_token(period),
             _safe_token(start),
             _safe_token(end),
             _safe_token(interval),
-            "adj" if auto_adjust else "raw",
-            "multi" if multi_level_index else "single",
+            'adj' if auto_adjust else 'raw',
+            'multi' if multi_level_index else 'single',
         ]
     )
-    return cache_dir / f"{token}.parquet"
+    return cache_dir / f'{token}.parquet'
 
 
 def _read_cache(path: Path) -> pd.DataFrame | None:
@@ -45,12 +52,13 @@ def _read_cache(path: Path) -> pd.DataFrame | None:
     try:
         return pd.read_parquet(path)
     except ImportError as exc:
-        raise ImportError(
-            "Parquet support requires 'pyarrow' or 'fastparquet'. "
-            "Install one to enable caching."
-        ) from exc
+        warnings.warn(
+            'Parquet cache backend unavailable; proceeding without cache. '
+            '(Install pyarrow or fastparquet to enable parquet cache.)'
+        )
+        return None
     except Exception as exc:  # pragma: no cover - defensive
-        warnings.warn(f"Failed to read cache at {path}: {exc}")
+        warnings.warn(f'Failed to read cache at {path}: {exc}')
         return None
 
 
@@ -59,10 +67,10 @@ def _write_cache(df: pd.DataFrame, path: Path) -> None:
     try:
         df.to_parquet(path)
     except ImportError as exc:
-        raise ImportError(
-            "Parquet support requires 'pyarrow' or 'fastparquet'. "
-            "Install one to enable caching."
-        ) from exc
+        warnings.warn(
+            'Parquet cache backend unavailable; skipping cache write. '
+            '(Install pyarrow or fastparquet to enable parquet cache.)'
+        )
 
 
 def _standardize(df: pd.DataFrame) -> pd.DataFrame:
@@ -86,7 +94,7 @@ def _warn_gaps(index: pd.Index) -> None:
             return
         gaps = deltas > deltas.median() * 3
     if gaps.any():
-        warnings.warn("Potential missing bars detected in price data.")
+        warnings.warn('Potential missing bars detected in price data.')
 
 def load_yf(
     ticker: str,
@@ -131,7 +139,10 @@ def load_yf(
     )
 
     if df is None or df.empty:
-        raise ValueError(f'No data returned from yfinance for {ticker}')
+        raise ValueError(
+            f'No data returned from yfinance for {ticker}. '
+            'Check internet connectivity or provide a valid local cache.'
+        )
 
     df = _standardize(df)
     _warn_gaps(df.index)
@@ -145,14 +156,14 @@ def load_yf(
 def load_yf_multi(
     tickers: list[str],
     *,
-    return_as: str = "dict",
+    return_as: str = 'dict',
     **kwargs,
 ) -> dict[str, pd.DataFrame] | pd.DataFrame:
     data = {ticker: load_yf(ticker, **kwargs) for ticker in tickers}
 
-    if return_as == "dict":
+    if return_as == 'dict':
         return data
-    if return_as == "multiindex":
+    if return_as == 'multiindex':
         return pd.concat(data, axis=1)
 
-    raise ValueError("return_as must be 'dict' or 'multiindex'")
+    raise ValueError('return_as must be \'dict\' or \'multiindex\'')

@@ -4,10 +4,10 @@ from performance import performance_report
 from trades import build_trades, trade_stats
 
 def analyze_backtest(bt_df):
-    perf = performance_report(bt_df)
-    dd_df, dd_rep, spells = drawdown_report(bt_df)
     trades = build_trades(bt_df)
-    tstats  = trade_stats(trades)
+    tstats = trade_stats(trades)
+    perf = performance_report(bt_df, trade_stats_report=tstats)
+    dd_df, dd_rep, spells = drawdown_report(bt_df)
 
     return {
         'performance': perf,
